@@ -1,0 +1,64 @@
+schema: '2.0'
+stages:
+  preprocess:
+    cmd: python src/preprocess.py
+    deps:
+    - path: data/churn.csv
+      hash: md5
+      md5: 55289b95d9b4310f554778c725097c5b
+      size: 3282220
+    - path: src/preprocess.py
+      hash: md5
+      md5: 031225762528b8fe7ad0919391e56142
+      size: 5422
+    outs:
+    - path: data/processed
+      hash: md5
+      md5: 34009e1889dd8b47fc27d1ea841fd04c.dir
+      size: 15939943
+      nfiles: 6
+  drift:
+    cmd: python src/drift.py
+    deps:
+    - path: data/churn.csv
+      hash: md5
+      md5: 55289b95d9b4310f554778c725097c5b
+      size: 3282220
+    - path: data/churn_drifted_v1.csv
+      hash: md5
+      md5: 28b932ffa6b61b70f65d74d6f9f93046
+      size: 5291356
+    - path: data/churn_drifted_v2.csv
+      hash: md5
+      md5: 938a08779c054690318074a496188f11
+      size: 4289883
+    - path: src/drift.py
+      hash: md5
+      md5: 6024eb78122d85398d65a17c3ee5077b
+      size: 4319
+    outs:
+    - path: reports/drift_report.json
+      hash: md5
+      md5: 446aee63fe3ecbb85d8307b2c073abb4
+      size: 228
+  train:
+    cmd: python src/train.py
+    deps:
+    - path: data/processed
+      hash: md5
+      md5: 34009e1889dd8b47fc27d1ea841fd04c.dir
+      size: 15939943
+      nfiles: 6
+    - path: reports/drift_report.json
+      hash: md5
+      md5: 446aee63fe3ecbb85d8307b2c073abb4
+      size: 228
+    - path: src/train.py
+      hash: md5
+      md5: 2aa6bbb84ffa8c73a0f872531e4fe734
+      size: 3973
+    outs:
+    - path: models/model.pkl
+      hash: md5
+      md5: 4ae1ed4283e51f1d1d80a7a0e82ab7f4
+      size: 159498841

@@ -1,0 +1,27 @@
+stages:
+  preprocess:
+    cmd: python src/preprocess.py
+    deps:
+      - data/churn.csv
+      - src/preprocess.py
+    outs:
+      - data/processed
+
+  drift:
+    cmd: python src/drift.py
+    deps:
+      - data/churn.csv
+      - data/churn_drifted_v1.csv
+      - data/churn_drifted_v2.csv
+      - src/drift.py
+    outs:
+      - reports/drift_report.json
+
+  train:
+    cmd: python src/train.py
+    deps:
+      - data/processed
+      - reports/drift_report.json
+      - src/train.py
+    outs:
+      - models/model.pkl

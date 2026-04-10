@@ -1,0 +1,36 @@
+# Python cache and build artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+.build/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Tooling cache
+.pytest_cache/
+.mypy_cache/
+.ipynb_checkpoints/
+
+# Local environment files
+.env
+.env.*
+
+# Generated model artifacts and reports
+models/**/*.pkl
+models/**/*.joblib
+reports/
+
+# Raw/processed CSV data files
+*.csv
+
+# Keep DVC pointer files tracked
+!*.csv.dvc

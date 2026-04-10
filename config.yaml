@@ -1,0 +1,56 @@
+# settings file for all datasets
+
+datasets:
+
+  # original dataset
+  churn:
+    file_path: "data/churn.csv"
+    target: Churn
+    categorical_features:
+      - Gender
+      - Subscription Type
+      - Contract Length
+    numerical_features:
+      - Age
+      - Tenure
+      - Usage Frequency
+      - Support Calls
+      - Payment Delay
+      - Total Spend
+      - Last Interaction
+
+
+  # drifted dataset version 1
+  churn_drifted_v1:
+    file_path: "data/churn_drifted_v1.csv"
+    target: Churn
+    categorical_features:
+      - Gender
+      - Subscription Type
+      - Contract Length
+    numerical_features:
+      - Age
+      - Tenure
+      - Usage Frequency
+      - Support Calls
+      - Payment Delay
+      - Total Spend
+      - Last Interaction
+
+
+  # drifted dataset version 2
+  churn_drifted_v2:
+    file_path: "data/churn_drifted_v2.csv"
+    target: Churn
+    categorical_features:
+      - Gender
+      - Subscription Type
+      - Contract Length
+    numerical_features:
+      - Age
+      - Tenure
+      - Usage Frequency
+      - Support Calls
+      - Payment Delay
+      - Total Spend
+      - Last Interaction
