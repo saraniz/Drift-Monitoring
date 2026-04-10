@@ -2,3 +2,6 @@
     remote = origin
 ['remote "origin"']
     url = https://dagshub.com/saraniz/Drift-Monitoring.dvc
+    auth = basic
+    user = saraniz
+    password = e21c0119bbdba37c293928bcf997c4ef1ecf3c80
