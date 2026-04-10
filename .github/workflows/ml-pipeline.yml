@@ -1,4 +1,4 @@
-name: ML Pipeline with DVC and DagsHub
+name: ML Pipeline with DVC, MLflow and DagsHub
 
 on:
   push:
@@ -32,29 +32,33 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -r requirements.txt
-          pip install dvc dagshub
+          pip install dvc dagshub mlflow
 
-      # 4. Configure Git (required for DVC + commits)
+      # 4. Configure Git
       - name: Configure Git
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "actions@github.com"
 
-      # 5. Setup DVC remote + authentication (IMPORTANT FIX)
-      - name: Setup DVC + DagsHub
+      # 5. Setup DVC remote (DagsHub)
+      - name: Setup DVC remote
         run: |
-          # Ensure DVC is available
           dvc --version
 
-          # Add remote (safe even if already exists)
           dvc remote add origin https://dagshub.com/saraniz/Drift-Monitoring.dvc || true
 
-          # Configure authentication
           dvc remote modify origin auth basic
           dvc remote modify origin user ${{ secrets.DAGSHUB_USERNAME }}
           dvc remote modify origin password ${{ secrets.DAGSHUB_TOKEN }}
 
-      # 6. Cache DVC data (speeds up workflow)
+      # 6. Setup MLflow + DagsHub authentication (FIX 403 ERROR)
+      - name: Setup MLflow authentication
+        run: |
+          echo "MLFLOW_TRACKING_URI=https://dagshub.com/saraniz/Drift-Monitoring.mlflow" >> $GITHUB_ENV
+          echo "MLFLOW_TRACKING_USERNAME=${{ secrets.DAGSHUB_USERNAME }}" >> $GITHUB_ENV
+          echo "MLFLOW_TRACKING_PASSWORD=${{ secrets.DAGSHUB_TOKEN }}" >> $GITHUB_ENV
+
+      # 7. Cache DVC
       - name: Cache DVC
         uses: actions/cache@v4
         with:
@@ -63,19 +67,19 @@ jobs:
           restore-keys: |
             dvc-cache-${{ runner.os }}-
 
-      # 7. Pull dataset + artifacts from DagsHub
+      # 8. Pull data (safe after auth fix)
       - name: DVC Pull
         run: dvc pull --force
 
-      # 8. Run full ML pipeline
+      # 9. Run full ML pipeline (preprocess → drift → train)
       - name: Run DVC Pipeline
         run: dvc repro
 
-      # 9. Push updated data/models back to DagsHub
+      # 10. Push artifacts to DagsHub
       - name: DVC Push
         run: dvc push
 
-      # 10. Commit any generated outputs (optional)
+      # 11. Commit pipeline updates (safe)
       - name: Commit changes
         run: |
           git add .
