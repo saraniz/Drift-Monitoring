@@ -1,5 +1,8 @@
 name: ML Pipeline with DVC, MLflow and DagsHub
 
+permissions:
+  contents: write
+
 on:
   push:
     branches:
