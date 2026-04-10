@@ -9,7 +9,7 @@ import json
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
-mlflow.set_tracking_uri("https://dagshub.com/saraniz/Drift-Monitoring-System.mlflow")
+mlflow.set_tracking_uri("https://dagshub.com/saraniz/Drift-Monitoring.mlflow")
 
 # config file load
 # safe_load() → a function inside the yaml module
