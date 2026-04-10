@@ -8,10 +8,18 @@ on:
     branches:
       - main
       - "**"
+    paths-ignore:
+      - "**.md"
+      - "README.md"
+      - "docs/**"
 
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - "**.md"
+      - "README.md"
+      - "docs/**"
 
   workflow_dispatch:
 
