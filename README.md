@@ -1,87 +1,126 @@
-# Drift Monitoring System
+# Dataset Drift Monitoring System
 
-This project builds a simple end-to-end MLOps workflow for churn modeling with data drift simulation, drift detection, and automated training.
+A robust MLOps pipeline for Churn Prediction designed to simulate, detect, and handle dataset drift in production-like environments. This project focuses on understanding **Data Version Control (DVC)**, experiment tracking with **MLflow**, and automating CI/CD workflows using **GitHub Actions**, all hosted and visualized on **DagsHub**.
 
-## What I implemented
+---
 
-1. Added two drift generation scripts:
-	- driftscripts/script1.py for mild drift
-	- driftscripts/script2.py for stronger drift
-2. Built a preprocessing pipeline in src/preprocess.py:
-	- Loads dataset rules from config.yaml
-	- Handles missing values
-	- One-hot encodes categorical features
-	- Splits train and test sets
-	- Saves processed outputs in data/processed/
-3. Built drift detection in src/drift.py:
-	- Compares baseline churn vs drifted datasets
-	- Computes mean difference, variance difference, and KS statistic
-	- Produces reports/drift_report.json for DVC and training decisions
-4. Built model training in src/train.py:
-	- Reads drift report
-	- Selects lowest drift dataset automatically
-	- Trains RandomForestClassifier
-	- Logs params, metrics, and model artifacts to MLflow (DagsHub)
-5. Added DVC pipeline stages in dvc.yaml:
-	- preprocess
-	- drift
-	- train
-6. Added .gitignore with data-friendly rules:
-	- Ignores CSV files
-	- Keeps .csv.dvc files tracked
+## 📌 Project Overview & Architecture
 
-## Important fixes made
+In real-world machine learning systems, data is not static. Customer behavior changes, market shifts occur, and systems update. This leads to **data drift**, which can silently degrade model performance as the model operates on patterns it was not trained on. 
 
-Path handling was fixed so scripts work regardless of where commands are executed from.
+This project simulates these real-world dynamics by introducing multiple dataset versions (representing different drift levels) and automating drift detection to drive model retraining decisions.
 
-- src/preprocess.py now resolves config and dataset paths from the project root.
-- src/drift.py now writes reports/drift_report.json using a project-root absolute path.
-- driftscripts/script1.py and driftscripts/script2.py now read and write CSV files using script-based absolute paths.
+### System Architecture Flow
 
-These fixes prevent FileNotFoundError issues when running from different folders.
+![Dataset Drift Monitoring System Architecture](screenshots/drift1.jpg)
 
-## Project structure
+The pipeline is split into three main DVC stages:
+1. **Preprocessing (`preprocess`)**: Reads dataset configurations from `config.yaml`, handles missing values, encodes categorical variables, and performs train/test splits.
+2. **Drift Detection (`drift`)**: Compares drifted datasets against the baseline to measure distribution shifts using Statistical Tests (KS Test) and statistical property differences (Mean & Variance).
+3. **Automated Model Training (`train`)**: Evaluates the drift report, automatically selects the dataset with the lowest drift, trains a `RandomForestClassifier`, and logs parameters, metrics, and model artifacts to MLflow on DagsHub.
 
-- config.yaml: dataset and feature configuration
-- data/: raw, drifted, and processed datasets
-- driftscripts/: drift simulation scripts
-- src/preprocess.py: preprocessing pipeline
-- src/drift.py: drift detection and report generation
-- src/train.py: model training and MLflow logging
-- reports/drift_report.json: drift results for pipeline decisions
-- models/model.pkl: trained model output
-- dvc.yaml: reproducible pipeline definition
+---
 
-## How to run
+## 🚀 Key Highlights
 
-Run commands from the repository root (folder containing dvc.yaml).
+* **End-to-End Pipeline Reproducibility**: Built using **DVC (Data Version Control)** to manage dataset versions, pipeline tracking (`dvc.yaml`), and reproducibility.
+* **Preprocessing Pipeline**: Structured workflow for cleaning, imputing, and transforming churn prediction data based on configurable schemas.
+* **Drift Detection Module**: Compares dataset versions and measures distribution shifts across numerical and categorical features.
+* **Automated Pipeline**: Ensures reproducible ML experiments from data ingestion and preparation to final model evaluation.
+* **Experiment Tracking & Logging**: Track parameters, performance metrics, and model checkpoints using **MLflow** integrated with **DagsHub**.
+* **CI/CD Automation**: Powered by **GitHub Actions** to automatically trigger pipeline checks, run `dvc repro`, and ensure consistent builds on every push and pull request.
 
-1. Generate drifted datasets:
+---
 
-	python driftscripts/script1.py
-	python driftscripts/script2.py
+## 📊 Pipeline Visualization & Experiments
 
-2. Reproduce full DVC pipeline:
+### 1. DVC Data Pipeline (DAG)
+DagsHub visualizes our versioned data pipeline, showing how raw datasets split into processed versions, pass through drift detection to generate a report, and feed into training to produce a saved model.
 
-	dvc repro
+![DagsHub Data Pipeline](screenshots/1775885093557.jpg)
 
-3. Push DVC artifacts:
+### 2. Experiment Tracking (MLflow & DagsHub)
+Every training run is logged to MLflow, enabling comparison of metrics like Accuracy, Precision, Recall, and F1-score across different dataset versions.
 
-	dvc push
+![DagsHub Experiments](screenshots/drift3.jpg)
+*DagsHub Experiments interface showing model metrics (e.g., Accuracy ~0.7193) across runs.*
 
-## Current behavior
+![MLflow Experiment Tracking Dashboard](screenshots/drift4.jpg)
+*MLflow Dashboard listing runs initiated by the automated training pipeline.*
 
-- Preprocess stage generates train and test files under data/processed for:
-  - churn
-  - churn_drifted_v1
-  - churn_drifted_v2
-- Drift stage classifies both drifted datasets as Strong Drift.
-- Train stage selects the lowest drift score dataset and logs run details to MLflow.
+### 3. CI/CD Workflow (GitHub Actions)
+Every code check-in triggers a GitHub Action that pulls data from DVC, reproduces the pipeline steps, pushes updated model parameters to DagsHub, and commits the state changes.
 
-Example observed result:
-- churn_drifted_v2 accuracy around 0.7193
+![GitHub Actions CI/CD Pipeline Success](screenshots/drift5.jpg)
 
-## Notes
+---
 
-- If dvc repro is run inside src/, it fails because dvc.yaml is at repository root.
-- Always run dvc commands from project root.
+## 🛠️ Drift Simulation & Interpretation
+
+To test the system, we simulate two types of behavioral drifts:
+1. **Gradual Drift (`churn_drifted_v1.csv`)**: Mimics mild behavior shifts, such as small increases in usage frequency and support calls, with minor churn adjustments.
+2. **Strong Drift (`churn_drifted_v2.csv`)**: Mimics extreme changes, such as significantly increased support calls, payment delays, subscription downgrades to basic plans, and a higher overall churn rate.
+
+### Drift Interpretation Rules
+Drift scores are calculated as the average of Mean Difference, Variance Difference, and the Kolmogorov-Smirnov (KS) Statistic across all features:
+* **Drift Score < 0.2**: `No Drift` (No action required)
+* **0.2 ≤ Drift Score < 0.5**: `Mild Drift` (Monitor closely)
+* **Drift Score ≥ 0.5**: `Strong Drift` (Retrain model)
+
+---
+
+## 📁 Project Structure
+
+* `config.yaml`: Configuration file defining dataset paths, targets, and categorical/numerical features.
+* `data/`: Contains raw, drifted, and processed datasets (tracked by DVC).
+* `driftscripts/`: Scripts containing the rules for generating drifted datasets (`script1.py` and `script2.py`).
+* `src/preprocess.py`: Cleans, encodes, and splits datasets according to config rules.
+* `src/drift.py`: Run statistical comparisons to detect drift and output `reports/drift_report.json`.
+* `src/train.py`: Reads the drift report, selects the best dataset version, trains a `RandomForestClassifier`, and tracks runs in MLflow.
+* `dvc.yaml`: DVC pipeline specifying dependencies, commands, and outputs for each stage.
+
+---
+
+## 💻 How to Run Locally
+
+### Prerequisites
+Make sure you have DVC, MLflow, and the required dependencies installed:
+```bash
+pip install -r requirements.txt
+pip install dvc dagshub mlflow
+```
+
+### Steps
+
+1. **Simulate drifted datasets**:
+   ```bash
+   python driftscripts/script1.py
+   python driftscripts/script2.py
+   ```
+
+2. **Reproduce the DVC pipeline**:
+   Runs the preprocessing, drift detection, and automated training stages sequentially:
+   ```bash
+   dvc repro
+   ```
+
+3. **Push pipeline outputs/data versioning**:
+   ```bash
+   dvc push
+   ```
+
+---
+
+## 💡 What I Learned
+
+* **Deep Practical Understanding of DVC**: Mastered dataset versioning and pipeline control to ensure full experiment reproducibility.
+* **Impact of Data Drift**: Observed firsthand how dataset changes directly impact model performance, proving why passive model deployment is insufficient.
+* **End-to-End MLOps Systems**: Learned how to design ML systems that are maintainable, reproducible, and robust over time.
+* **Integrated Workflows**: Connected data versioning, training, tracking, and monitoring into a single, cohesive CI/CD automated workflow.
+
+---
+
+## 🔗 Project Links
+
+* **GitHub Repository**: [https://lnkd.in/gnpQ8HGP](https://lnkd.in/gnpQ8HGP)
+* **DagsHub Repository**: [https://lnkd.in/gmWdGP_7](https://lnkd.in/gmWdGP_7)
